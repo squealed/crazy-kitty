@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Card } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { 
+import { Card } from "@/components/ui/card";
+import {
   Camera,
   Youtube as YoutubeIcon,
   Facebook as FacebookIcon,
   Twitter as TwitterIcon,
   Music2,
   MessageCircle,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 
 type TrafficStats = {
@@ -24,7 +24,7 @@ const icons = {
   facebook: FacebookIcon,
   tiktok: Music2,
   twitter: TwitterIcon,
-  other: ExternalLink
+  other: ExternalLink,
 };
 
 const DEFAULT_STATS = {
@@ -34,7 +34,7 @@ const DEFAULT_STATS = {
   facebook: 0,
   tiktok: 0,
   twitter: 0,
-  other: 0
+  other: 0,
 };
 
 export default function TrackPage() {
@@ -42,32 +42,31 @@ export default function TrackPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load existing stats from localStorage
-    const savedStats = localStorage.getItem('trafficStats');
-    const currentStats: TrafficStats = savedStats ? JSON.parse(savedStats) : DEFAULT_STATS;
+    async function updateTrafficStats() {
+      // Get referrer information
+      const referrer = document.referrer.toLowerCase();
+      let source = "other";
 
-    // Get referrer information
-    const referrer = document.referrer.toLowerCase();
-    let source = 'other';
+      // Determine traffic source
+      if (referrer.includes("discord")) source = "discord";
+      else if (referrer.includes("instagram")) source = "instagram";
+      else if (referrer.includes("youtube")) source = "youtube";
+      else if (referrer.includes("facebook")) source = "facebook";
+      else if (referrer.includes("tiktok")) source = "tiktok";
+      else if (referrer.includes("twitter")) source = "twitter";
 
-    // Determine traffic source
-    if (referrer.includes('discord')) source = 'discord';
-    else if (referrer.includes('instagram')) source = 'instagram';
-    else if (referrer.includes('youtube')) source = 'youtube';
-    else if (referrer.includes('facebook')) source = 'facebook';
-    else if (referrer.includes('tiktok')) source = 'tiktok';
-    else if (referrer.includes('twitter')) source = 'twitter';
+      // Increment and fetch updated stats from the API
+      const response = await fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source }),
+      });
+      const updatedStats = await response.json();
+      setStats(updatedStats);
+      setLoading(false);
+    }
 
-    // Update stats
-    const updatedStats = {
-      ...currentStats,
-      [source]: (currentStats[source] || 0) + 1
-    };
-
-    // Save to localStorage
-    localStorage.setItem('trafficStats', JSON.stringify(updatedStats));
-    setStats(updatedStats);
-    setLoading(false);
+    updateTrafficStats();
   }, []);
 
   if (loading) {
@@ -101,8 +100,10 @@ export default function TrackPage() {
           {Object.entries(stats).map(([source, visits], index) => {
             const Icon = icons[source as keyof typeof icons];
             const percentage = (visits / maxVisits) * 100;
-            const visitPercentage = totalVisits ? ((visits / totalVisits) * 100).toFixed(1) : '0';
-            
+            const visitPercentage = totalVisits
+              ? ((visits / totalVisits) * 100).toFixed(1)
+              : "0";
+
             return (
               <motion.div
                 key={source}
@@ -125,11 +126,9 @@ export default function TrackPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-2xl font-bold">
-                      {visitPercentage}%
-                    </div>
+                    <div className="text-2xl font-bold">{visitPercentage}%</div>
                   </div>
-                  <div 
+                  <div
                     className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
                     style={{ width: `${percentage}%` }}
                   />

@@ -16,6 +16,8 @@ import { useState } from "react";
 import Image from "next/image";
 import FloatingCat from "@/components/FloatingCat";
 import Head from "next/head"
+import { useEffect } from "react";
+
 const links = [
   {
     name: "Discord",
@@ -78,6 +80,34 @@ const gradients = [
 
 export default function Home() {
   const [currentGradient, setCurrentGradient] = useState(0);
+
+  useEffect(() => {
+    // Check the referrer and send it to the analytics API
+    const referrer = document.referrer.toLowerCase();
+    let source = "other";
+
+    if (referrer.includes("discord")) source = "discord";
+    else if (referrer.includes("instagram")) source = "instagram";
+    else if (referrer.includes("youtube")) source = "youtube";
+    else if (referrer.includes("facebook")) source = "facebook";
+    else if (referrer.includes("tiktok")) source = "tiktok";
+    else if (referrer.includes("twitter")) source = "twitter";
+
+    // Send analytics data to the API
+    const sendAnalytics = async () => {
+      try {
+        await fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ source }),
+        });
+      } catch (error) {
+        console.error("Failed to send analytics:", error);
+      }
+    };
+
+    sendAnalytics();
+  }, []);
 
   const handleCatClick = () => {
     setCurrentGradient((prev) => (prev + 1) % gradients.length);

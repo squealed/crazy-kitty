@@ -21,7 +21,7 @@ import { useEffect } from "react";
 const links = [
   {
     name: "Discord",
-    url: "https://discord.gg/EY9EywrD?ref=discord",
+    url: "https://discord.gg/q4egu5e8xw",
     color: "bg-[#5865F2]",
     hoverColor: "hover:bg-[#4752c4]",
     icon: MessageCircle,
